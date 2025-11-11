@@ -5,21 +5,39 @@ require __DIR__ . '/db-connect.php';
 $stmt = $pdo->query("SELECT * FROM vragen ORDER BY created_at DESC");
 $vragen = $stmt->fetchAll();
 
+$errors = [];
+
 // Nieuwe vraag verwerken
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['titel']) && !empty($_POST['beschrijving'])) {
-    $barcode = $_POST['barcode'] ?? null; // optioneel
-    $titel = trim($_POST['titel']);
-    $beschrijving = trim($_POST['beschrijving']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $barcode = trim($_POST['barcode'] ?? '');
+    $titel = trim($_POST['titel'] ?? '');
+    $beschrijving = trim($_POST['beschrijving'] ?? '');
 
-    $stmt = $pdo->prepare("INSERT INTO vragen (barcode, titel, beschrijving) VALUES (:barcode, :titel, :beschrijving)");
-    $stmt->execute([
-        'barcode' => $barcode,
-        'titel' => $titel,
-        'beschrijving' => $beschrijving
-    ]);
+    if (empty($titel) || empty($beschrijving)) {
+        $errors[] = "Titel en beschrijving zijn verplicht.";
+    }
 
-    header("Location: vragen.php");
-    exit;
+    if (empty($barcode)) {
+        $errors[] = "Barcode is verplicht.";
+    } else {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM producten WHERE barcode = :barcode");
+        $stmt->execute(['barcode' => $barcode]);
+        if ($stmt->fetchColumn() == 0) {
+            $errors[] = "De ingevoerde barcode bestaat niet.";
+        }
+    }
+
+    if (empty($errors)) {
+        $stmt = $pdo->prepare("INSERT INTO vragen (barcode, titel, beschrijving) VALUES (:barcode, :titel, :beschrijving)");
+        $stmt->execute([
+            'barcode' => $barcode,
+            'titel' => $titel,
+            'beschrijving' => $beschrijving
+        ]);
+
+        header("Location: vragen.php");
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -30,11 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['titel']) && !empty($
 <title>BakTech Webshop - Vragen</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-/* Hero sectie */
 .hero { text-align: center; background: #e0e0e0; padding: 50px 20px; margin-bottom: 20px; }
 
-/* Vragen lijst */
-.vraag { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+/* Vragen lijst gecentreerd */
+.vragen-lijst { display: flex; flex-direction: column; align-items: center; }
+.vraag { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1); max-width: 600px; width: 100%; text-align: center; }
 .vraag-title { font-weight: bold; color: #003366; margin-bottom: 5px; }
 .vraag-desc { margin-bottom: 5px; }
 .vraag-date { font-size: 0.8em; color: #666; }
@@ -45,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['titel']) && !empty($
 .vragen-form input, .vragen-form textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
 .vragen-form button { margin-top: 15px; padding: 10px 20px; background-color: #003366; color: white; border: none; border-radius: 5px; cursor: pointer; }
 .vragen-form button:hover { background-color: #0055aa; }
+.error { background: #ffdddd; border: 1px solid #ff5c5c; padding: 10px; margin-bottom: 15px; border-radius: 5px; color: #900; text-align: center; }
 </style>
 </head>
 <body>
@@ -65,6 +84,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['titel']) && !empty($
             <h2>Veelgestelde Vragen & Stel je eigen vraag</h2>
             <p>Bekijk de meest gestelde vragen of stel een nieuwe vraag over onze machines.</p>
         </section>
+
+        <?php if(!empty($errors)): ?>
+            <div class="error">
+                <?php foreach($errors as $error): ?>
+                    <p><?= htmlspecialchars($error) ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <section class="vragen-lijst">
             <h2 style="text-align:center;">Veelgestelde Vragen</h2>
@@ -90,15 +117,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['titel']) && !empty($
                 <label for="beschrijving">Beschrijving</label>
                 <textarea name="beschrijving" id="beschrijving" rows="4" placeholder="Beschrijf je vraag..." required></textarea>
 
-                <label for="barcode">Barcode (optioneel)</label>
-                <input type="text" name="barcode" id="barcode" placeholder="Optioneel: barcode product">
+                <label for="barcode">Barcode (verplicht)</label>
+                <input type="text" name="barcode" id="barcode" placeholder="Voer een geldige barcode in" required>
 
                 <button type="submit">Verstuur vraag</button>
             </form>
         </section>
     </div>
 </main>
-
 
 <footer>
     <div class="footer-container">
