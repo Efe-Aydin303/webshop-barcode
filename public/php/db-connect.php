@@ -1,14 +1,20 @@
 <?php
-$servername = "localhost";
-$username = "root";      // XAMPP standaard
-$password = "";          // XAMPP standaard
-$dbname = "project_week";
+$host = 'localhost';
+$db   = 'project_week';
+$user = 'root';
+$pass = '';
+$charset = 'utf8mb4';
 
-// Maak verbinding
-$conn = new mysqli($servername, $username, $password, $dbname);
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 
-// Check verbinding
-if ($conn->connect_error) {
-    die("Verbinding mislukt: " . $conn->connect_error);
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+];
+
+try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (\PDOException $e) {
+    die("Database verbinding mislukt: " . $e->getMessage());
 }
 ?>

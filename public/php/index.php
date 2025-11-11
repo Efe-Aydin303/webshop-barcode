@@ -1,5 +1,26 @@
 <?php
-include 'db-connect.php';
+// db-connect.php
+$host = '127.0.0.1';
+$db   = 'project_week';
+$user = 'root'; // jouw DB-gebruiker
+$pass = '';     // jouw wachtwoord
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+];
+
+try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (\PDOException $e) {
+    die("Database connectie mislukt: " . $e->getMessage());
+}
+
+// Haal alle producten op
+$stmt = $pdo->query("SELECT * FROM producten ORDER BY barcode ASC");
+$producten = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -8,6 +29,32 @@ include 'db-connect.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BakTech Webshop</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Product grid styling */
+        .product-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .product {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+        }
+        .product img {
+            max-width: 200px;
+            max-height: 200px;
+        }
+        .prijs {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -27,28 +74,14 @@ include 'db-connect.php';
     </section>
 
     <section class="product-grid">
-        <?php
-        $sql = "SELECT * FROM producten";
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                // Afbeeldingpad direct vanuit database gebruiken
-                $imgPath = $row['afbeelding'];
-
-                echo '<div class="product">';
-                echo '<img src="' . $imgPath . '" alt="' . $row['naam'] . '">';
-                echo '<h3>' . $row['naam'] . '</h3>';
-                echo '<p>€' . $row['prijs'] . '</p>';
-                echo '<button onclick="addToCart(\'' . $row['naam'] . '\', ' . $row['prijs'] . ')">Toevoegen</button>';
-                echo '</div>';
-            }
-        } else {
-            echo '<p>Geen producten gevonden.</p>';
-        }
-
-        $conn->close();
-        ?>
+        <?php foreach ($producten as $product): ?>
+            <div class="product">
+                <h3><?= htmlspecialchars($product['naam']) ?></h3>
+                <img src="<?= htmlspecialchars($product['foto_url']) ?>" alt="<?= htmlspecialchars($product['naam']) ?>">
+                <div class="prijs">€<?= number_format($product['prijs'], 2, ',', '.') ?></div>
+                <button onclick="addToCart('<?= htmlspecialchars($product['naam']) ?>', <?= $product['prijs'] ?>)">Toevoegen</button>
+            </div>
+        <?php endforeach; ?>
     </section>
 </main>
 
@@ -72,6 +105,7 @@ include 'db-connect.php';
 </footer>
 
 <script>
+// Winkelwagen functionaliteit
 function addToCart(name, price) {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     let existing = cart.find(item => item.name === name);
