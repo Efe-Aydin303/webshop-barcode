@@ -16,23 +16,31 @@ $options = [
 
 $pdo = new PDO($dsn, $user, $pass, $options);
 
+session_start();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $wachtwoord = $_POST['wachtwoord'];
-    
-    $cipher = 'aes-128-gcm';
-    $key = substr(hash('sha256', 'key123', true), 0, 16);
-    $ivlen = openssl_cipher_iv_length($cipher);
-    $iv = openssl_random_pseudo_bytes($ivlen);
-    $tag = '';
-    $ciphertext_raw = openssl_encrypt($wachtwoord, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
-    $ciphertext = base64_encode($iv . $tag . $ciphertext_raw);
-    // $stmt = $pdo->prepare('INSERT INTO gebruiker (naam, wachtwoord) VALUES (:naam, :ciphertext)');
-    // $stmt->execute([
-    //     'naam' => $_POST['naam'],
-    //     'ciphertext' => $ciphertext,
-    // ]);
-    header("Location: index.php");
-    exit;
+    if (isset($_POST['naam']) && isset($_POST['wachtwoord'])) {
+        $wachtwoord = $_POST['wachtwoord'];
+        if ($wachtwoord == $_POST['wachtwoord2']) {
+            $cipher = 'aes-128-gcm';
+            $key = substr(hash('sha256', 'key123', true), 0, 16);
+            $ivlen = openssl_cipher_iv_length($cipher);
+            $iv = openssl_random_pseudo_bytes($ivlen);
+            $tag = '';
+            $ciphertext_raw = openssl_encrypt($wachtwoord, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+            $ciphertext = base64_encode($iv . $tag . $ciphertext_raw);
+            $stmt = $pdo->prepare('INSERT INTO gebruiker (naam, wachtwoord) VALUES (:naam, :ciphertext)');
+            $stmt->execute([
+                    'naam' => $_POST['naam'],
+                    'ciphertext' => $ciphertext,
+                ]);
+                $_SESSION['user_id'] = $pdo->lastInsertId();
+                header("Location: index.php");
+                exit;  
+        } else {
+            echo "<h3 style=color:red>Wachtwoorden komen niet overeen</h3>";
+        }
+    }
 }   
 
 ?> 
@@ -71,6 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="text" name="naam">
     <label for="wachtwoord">Wachtwoord</label>
     <input type="password" name="wachtwoord">
+    <label for="wachtwoord2">Bevestig Wachtwoord</label>
+    <input type="password" name="wachtwoord2">
     <button type="submit">Submit</button>
 </form>
 
