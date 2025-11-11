@@ -216,3 +216,28 @@ footer {
 .vragen-form button:hover {
     background-color: #0055aa;
 }
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.vraag {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    text-align: left; /* vraagcontent links uitlijnen binnen gecentreerde container */
+}
+
+.vraag-title { color: #003366; font-weight: bold; }
+.vraag-desc { margin-top: 5px; }
+.vraag-date { font-size: 0.8em; color: #666; margin-top: 5px; }
+
+.vragen-form {
+    margin: 20px auto;
+    text-align: left; /* inputvelden links uitlijnen */
+}
