@@ -1,6 +1,14 @@
 <?php
 require __DIR__ . '/db-connect.php';
 
+session_start();
+
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit;
+    }
+
+
 // Vragen ophalen (nieuwste eerst)
 $stmt = $pdo->query("SELECT * FROM vragen ORDER BY created_at DESC");
 $vragen = $stmt->fetchAll();
@@ -64,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 .vragen-form button { margin-top: 15px; padding: 10px 20px; background-color: #003366; color: white; border: none; border-radius: 5px; cursor: pointer; }
 .vragen-form button:hover { background-color: #0055aa; }
 .error { background: #ffdddd; border: 1px solid #ff5c5c; padding: 10px; margin-bottom: 15px; border-radius: 5px; color: #900; text-align: center; }
+
 </style>
 </head>
 <body>
@@ -72,16 +81,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1>BakTech Webshop</h1>
     <nav>
         <a href="index.php">Home</a>
-        <a href="login.php">Login</a>
+        <!-- <a href="login.php">Login</a> -->
         <a href="cart.php">Winkelwagen</a>
         <a href="vragen.php">Vragen</a>
+        <form action="logout.php" method="post" style="display:inline;">
+            <button type="submit" name="logout" class="nav-button">Logout</button>
+        </form>
+
     </nav>
 </header>
 
 <main>
     <div class="container">
         <section class="hero">
-            <h2>Veelgestelde Vragen & Stel je eigen vraag</h2>
+            <h2>Veelgestelde vragen & stel je eigen vraag</h2>
             <p>Bekijk de meest gestelde vragen of stel een nieuwe vraag over onze machines.</p>
         </section>
 

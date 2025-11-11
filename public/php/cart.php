@@ -1,3 +1,14 @@
+<?php 
+
+session_start();
+
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit;
+    }
+
+?>
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -11,9 +22,12 @@
     <h1>BakTech Webshop</h1>
     <nav>
         <a href="index.php">Home</a>
-        <a href="login.php">Login</a>
+        <!-- <a href="login.php">Login</a> -->
         <a href="cart.php">Winkelwagen</a>
         <a href="vragen.php">Vragen</a>
+        <form action="logout.php" method="post" style="display:inline;">
+            <button type="submit" name="logout" class="nav-button">Logout</button>
+        </form>
     </nav>
 </header>
 
