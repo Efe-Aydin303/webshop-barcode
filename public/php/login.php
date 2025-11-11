@@ -26,15 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute(['naam' => $naam]);
     $user = $stmt->fetch();
     if ($user) {
-        $cipher = 'aes-128-gcm';
-        $key = substr(hash('sha256', 'key123', true), 0, 16);
-        $c = base64_decode($user['wachtwoord']);
-        $ivlen = openssl_cipher_iv_length($cipher);
-        $iv = substr($c, 0, $ivlen);
-        $tag = substr($c, $ivlen, 16);
-        $ciphertext_raw = substr($c, $ivlen + 16);
-        $decrypted_wachtwoord = openssl_decrypt($ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag);
-        if ($decrypted_wachtwoord === $wachtwoord) {
+        if(password_verify($wachtwoord, $user['wachtwoord'])){
             $_SESSION['user_id'] = $user['id'];
             header("Location: index.php");
             exit;
@@ -42,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<h3 style=color:red>Onjuiste naam of wachtwoord</h3>";
         }
     }
-}   
+}
 
 ?> 
 

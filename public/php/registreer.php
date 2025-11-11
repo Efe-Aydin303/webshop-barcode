@@ -22,17 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['naam']) && isset($_POST['wachtwoord'])) {
         $wachtwoord = $_POST['wachtwoord'];
         if ($wachtwoord == $_POST['wachtwoord2']) {
-            $cipher = 'aes-128-gcm';
-            $key = substr(hash('sha256', 'key123', true), 0, 16);
-            $ivlen = openssl_cipher_iv_length($cipher);
-            $iv = openssl_random_pseudo_bytes($ivlen);
-            $tag = '';
-            $ciphertext_raw = openssl_encrypt($wachtwoord, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
-            $ciphertext = base64_encode($iv . $tag . $ciphertext_raw);
-            $stmt = $pdo->prepare('INSERT INTO gebruiker (naam, wachtwoord) VALUES (:naam, :ciphertext)');
+            $hash = password_hash($wachtwoord, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare('INSERT INTO gebruiker (naam, wachtwoord) VALUES (:naam, :password)');
             $stmt->execute([
                     'naam' => $_POST['naam'],
-                    'ciphertext' => $ciphertext,
+                    'password' => $hash,
                 ]);
                 $_SESSION['user_id'] = $pdo->lastInsertId();
                 header("Location: index.php");
