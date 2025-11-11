@@ -74,9 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button type="submit">Submit</button>
 </form>
 
-<form action="registreer.php">
-    <label for="registreer">Nog geen account?</label>
-    <button type="submit" name="registreer">Registreer</button>
+<form action="login.php">
+    <label for="login">Al een account?</label>
+    <button type="submit" name="login">login</button>
 </form>
 
 </body>
