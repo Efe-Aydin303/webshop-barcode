@@ -19,12 +19,20 @@ $pdo = new PDO($dsn, $user, $pass, $options);
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['naam']) && isset($_POST['wachtwoord'])) {
+    $error = '';
+    if (isset($_POST['naam']) && isset($_POST['wachtwoord']) && isset($_POST['wachtwoord2']) && isset($_POST['mail'])) {
         $wachtwoord = $_POST['wachtwoord'];
+        $stmt = $pdo->prepare('SELECT * FROM gebruiker WHERE email = :mail');
+        $stmt->execute(['mail' => $_POST['mail']]);
+        $existingUser = $stmt->fetch();
+        if ($existingUser) {
+            $error = "Email is al in gebruik";
+        } else {
         if ($wachtwoord == $_POST['wachtwoord2']) {
             $hash = password_hash($wachtwoord, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('INSERT INTO gebruiker (naam, wachtwoord) VALUES (:naam, :password)');
+            $stmt = $pdo->prepare('INSERT INTO gebruiker (email, naam, wachtwoord) VALUES (:email, :naam, :password)');
             $stmt->execute([
+                    'email' => $_POST['mail'],
                     'naam' => $_POST['naam'],
                     'password' => $hash,
                 ]);
@@ -35,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<h3 style=color:red>Wachtwoorden komen niet overeen</h3>";
         }
     }
+}
 }   
 
 ?> 
@@ -45,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webshop</title>
+    <link rel="stylesheet" href="../css/style.css">
     <style>
         body{
             display: flex;
@@ -62,26 +72,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         form > input {
             margin-bottom: 10px;
         }
+        header {
+            width: 100vw;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .login {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .login > button {
+            margin-top: 10px;
+            width: inherit;
+        }
     </style>
 </head>
 <body>
     
 <header>
+    <h1>BakTech Webshop</h1>
 </header>
-<form method="post">
-    <label for="naam">Naam</label>
-    <input type="text" name="naam">
-    <label for="wachtwoord">Wachtwoord</label>
-    <input type="password" name="wachtwoord">
-    <label for="wachtwoord2">Bevestig Wachtwoord</label>
-    <input type="password" name="wachtwoord2">
-    <button type="submit">Submit</button>
-</form>
+    <form method="post">
+        <label for="mail">Email</label>
+        <input type="email" name="mail" required>
+        <?php if (!empty($error)): ?>
+            <div class="error" style="color:red; margin-bottom: 10px;"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        <label for="naam">Naam</label>
+        <input type="text" name="naam" required>
+        <label for="wachtwoord">Wachtwoord</label>
+        <input type="password" name="wachtwoord" required>
+        <label for="wachtwoord2">Bevestig Wachtwoord</label>
+        <input type="password" name="wachtwoord2" required>
+        <button type="submit">Submit</button>
+    </form>
 
-<form action="login.php">
-    <label for="login">Al een account?</label>
-    <button type="submit" name="login">login</button>
-</form>
+    <form action="login.php" class="login">
+        <label for="login">Al een account?</label>
+        <button type="submit" name="login">login</button>
+    </form>
 
 </body>
 </html>

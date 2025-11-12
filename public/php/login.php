@@ -20,10 +20,11 @@ session_start();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $error = '';
     $wachtwoord = $_POST['wachtwoord'];
-    $naam = $_POST['naam'];
-    $stmt = $pdo->prepare('SELECT * FROM gebruiker WHERE naam = :naam');
-    $stmt->execute(['naam' => $naam]);
+    $mail = $_POST['mail'];
+    $stmt = $pdo->prepare('SELECT * FROM gebruiker WHERE email = :mail');
+    $stmt->execute(['mail' => $mail]);
     $user = $stmt->fetch();
     if ($user) {
         if(password_verify($wachtwoord, $user['wachtwoord'])){
@@ -31,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: index.php");
             exit;
         } else {
-            echo "<h3 style=color:red>Onjuiste naam of wachtwoord</h3>";
+            $error = "Onjuiste inloggegevens";
         }
     }
 }
@@ -44,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webshop</title>
+    <link rel="stylesheet" href="../css/style.css">
     <style>
         body{
             display: flex;
@@ -57,28 +59,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-direction: column;
             width: 200px;
             margin-bottom: 30px;
+            justify-content: center;
         }
         form > input {
             margin-bottom: 10px;
         }
+        header {
+            width: 100vw;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .registreer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .registreer > button {
+            margin-top: 10px;
+            width: inherit;
+        }
     </style>
 </head>
-<body>
-    
 <header>
+    <h1>BakTech Webshop</h1>
 </header>
-<form method="post">
-    <label for="naam">Naam</label>
-    <input type="text" name="naam">
-    <label for="wachtwoord">Wachtwoord</label>
-    <input type="password" name="wachtwoord">
-    <button type="submit">Submit</button>
-</form>
+<body>
+    <form method="post">
+        <label for="mial">Email</label>
+        <input type="email" name="mail">
+        <label for="wachtwoord">Wachtwoord</label>
+        <input type="password" name="wachtwoord">
+        <?php if (!empty($error)): ?>
+            <div class="error" style="color:red; margin-bottom: 10px;"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        <button type="submit">Submit</button>
+    </form>
 
-<form action="registreer.php">
-    <label for="registreer">Nog geen account?</label>
-    <button type="submit" name="registreer">Registreer</button>
-</form>
+    <form action="registreer.php" class="registreer">
+        <label for="registreer">Nog geen account?</label>
+        <button type="submit" name="registreer">Registreer</button>
+    </form>
 
 </body>
 </html>
