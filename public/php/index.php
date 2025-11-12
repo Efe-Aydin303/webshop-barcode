@@ -2,8 +2,8 @@
     // db-connect.php
     $host = '127.0.0.1';
     $db   = 'project_week';
-    $user = 'root'; // jouw DB-gebruiker
-    $pass = '';     // jouw wachtwoord
+    $user = 'bit_academy'; // jouw DB-gebruiker
+    $pass = 'bit_academy';     // jouw wachtwoord
     $charset = 'utf8mb4';
 
     $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
